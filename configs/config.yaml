@@ -1,0 +1,26 @@
+model:
+  name: mobilenetv3_small_100
+  checkpoint_path: models/best.pt
+  image_size: 224
+
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.001
+  # Class weights: bias toward recycle recall — missing a recyclable is worse
+  class_weights:
+    recycle: 2.0
+    waste: 1.0
+
+inference:
+  confidence_threshold: 0.6
+
+hardware:
+  gpio:
+    ir_sensor_pin: 17
+    servo_pin: 18
+  servo:
+    recycle_angle: 0
+    waste_angle: 180
+
+dry_run: true

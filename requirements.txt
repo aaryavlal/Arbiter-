@@ -1,0 +1,8 @@
+torch
+torchvision
+timm
+Pillow
+PyYAML
+RPi.GPIO
+picamera2
+scikit-learn
