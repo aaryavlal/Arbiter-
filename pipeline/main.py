@@ -11,6 +11,7 @@ Usage:
 import argparse
 import sys
 import time
+import infer 
 
 import yaml
 

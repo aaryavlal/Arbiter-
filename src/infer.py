@@ -40,6 +40,7 @@ class WasteClassifier:
         ])
 
     def predict(self, image) -> tuple[str, float]:
+        print("I NEED THE IMAGE FILE PATH")
         """
         Classify an image as recycle or waste.
 
