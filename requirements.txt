@@ -6,3 +6,4 @@ PyYAML
 RPi.GPIO
 picamera2
 scikit-learn
+datasets
