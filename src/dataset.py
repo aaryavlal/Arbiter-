@@ -23,7 +23,7 @@ LABEL_MAP = {
     "paper": 1,      # recycle
     "cardboard": 1,  # recycle
     "metal": 1,      # recycle
-    "plastic": 1,    # recycle (rigid assumed — soft plastic unresolved)
+    "plastic": 1,    # recycle 
     "trash": 0,      # waste
 }
 
