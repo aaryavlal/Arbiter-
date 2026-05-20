@@ -5,15 +5,20 @@ model:
 
 training:
   batch_size: 32
-  epochs: 20
-  learning_rate: 0.001
-  # Class weights: bias toward recycle recall — missing a recyclable is worse
-  class_weights:
-    recycle: 2.0
-    waste: 1.0
+  epochs: 2
+  learning_rate: 0.0003
 
+  class_weights:
+    # waste: 10.0 
+    # recycle: 1.0 #missing a recycle piece is worse than missing a waste piece
+    waste: 5.0
+    recycle: 1.0
 inference:
-  confidence_threshold: 0.6
+  confidence_threshold: 0.65
+
+data:  
+  dir: data/raw  #Where the data actually lives 
+  processed_dir: data/processe
 
 hardware:
   gpio:

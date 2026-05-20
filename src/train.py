@@ -6,14 +6,20 @@ Trains on a regular machine, saves best checkpoint to models/.
 
 import argparse
 from pathlib import Path
+from xml.parsers.expat import model
+from sklearn.metrics import classification_report
 
+from sklearn.metrics import classification_report
+from timm import data
 import torch
 import torch.nn as nn
 import timm
 import yaml
-
+import os
 from dataset import get_dataloaders
 
+from dotenv import load_dotenv
+load_dotenv()
 
 def build_model():
     """MobileNetV3-small with binary classification head."""
@@ -35,12 +41,11 @@ def train(config_path: str):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, val_loader, _ = get_dataloaders(
-        "data/processed", image_size=image_size, batch_size=batch_size
+        data_dir=cfg["data"]["dir"], image_size=image_size, batch_size=batch_size
     )
 
     model = build_model().to(device)
 
-    # Class-weighted loss: bias toward recycle recall
     weights = torch.tensor([class_weights["waste"], class_weights["recycle"]]).to(device)
     criterion = nn.CrossEntropyLoss(weight=weights)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -81,11 +86,32 @@ def train(config_path: str):
 
     print(f"Training complete. Best val acc: {best_val_acc:.4f}")
 
+    # Per-class breakdown — run after training loop completes
+    all_preds = []
+    all_labels = []
+
+    model.eval()
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, predicted = outputs.max(1)
+            all_preds.extend(predicted.cpu().tolist())
+            all_labels.extend(labels.cpu().tolist())
+
+    print("\nPer-class breakdown:")
+    print(classification_report(all_labels, all_preds, target_names=["waste", "recycle"]))
+
 
 def evaluate_epoch(model, loader, device):
     model.eval()
     correct = 0
     total = 0
+    all_preds = []
+    all_labels = []
+
+
+    #split 
     with torch.no_grad():
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)

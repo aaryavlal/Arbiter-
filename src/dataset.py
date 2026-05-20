@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 from PIL import Image
+import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 
@@ -77,21 +78,31 @@ class TrashDataset(Dataset):
 
 def get_dataloaders(data_dir: str, image_size: int = 224, batch_size: int = 32,
                     train_ratio: float = 0.7, val_ratio: float = 0.15):
-    """Split dataset into train/val/test and return DataLoaders."""
-    dataset = TrashDataset(data_dir, image_size, train=True)
-    total = len(dataset)
+
+    # Three separate datasets with correct transforms
+    train_dataset = TrashDataset(data_dir, image_size, train=True)
+    val_dataset   = TrashDataset(data_dir, image_size, train=False)
+    test_dataset  = TrashDataset(data_dir, image_size, train=False)
+
+    total = len(train_dataset)
     train_size = int(total * train_ratio)
-    val_size = int(total * val_ratio)
-    test_size = total - train_size - val_size
+    val_size   = int(total * val_ratio)
+    test_size  = total - train_size - val_size
 
-    train_set, val_set, test_set = random_split(dataset, [train_size, val_size, test_size])
+    # Get indices and split them
+    indices = torch.randperm(total).tolist()
+    train_indices = indices[:train_size]
+    val_indices   = indices[train_size:train_size + val_size]
+    test_indices  = indices[train_size + val_size:]
 
-    # Val/test use eval transforms (no augmentation)
-    val_set.dataset = TrashDataset(data_dir, image_size, train=False)
-    test_set.dataset = TrashDataset(data_dir, image_size, train=False)
+    # Apply the index splits to the correct dataset
+    from torch.utils.data import Subset
+    train_set = Subset(train_dataset, train_indices)
+    val_set   = Subset(val_dataset,   val_indices)
+    test_set  = Subset(test_dataset,  test_indices)
 
-    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=2)
-    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=2)
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,  num_workers=2)
+    val_loader   = DataLoader(val_set,   batch_size=batch_size, shuffle=False, num_workers=2)
+    test_loader  = DataLoader(test_set,  batch_size=batch_size, shuffle=False, num_workers=2)
 
     return train_loader, val_loader, test_loader
