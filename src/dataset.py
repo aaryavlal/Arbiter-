@@ -77,7 +77,7 @@ class TrashDataset(Dataset):
 
 
 def get_dataloaders(data_dir: str, image_size: int = 224, batch_size: int = 32,
-                    train_ratio: float = 0.7, val_ratio: float = 0.15):
+                    train_ratio: float = 0.7, val_ratio: float = 0.15, seed: int = 42):
 
     # Three separate datasets with correct transforms
     train_dataset = TrashDataset(data_dir, image_size, train=True)
@@ -89,11 +89,23 @@ def get_dataloaders(data_dir: str, image_size: int = 224, batch_size: int = 32,
     val_size   = int(total * val_ratio)
     test_size  = total - train_size - val_size
 
-    # Get indices and split them
-    indices = torch.randperm(total).tolist()
-    train_indices = indices[:train_size]
-    val_indices   = indices[train_size:train_size + val_size]
-    test_indices  = indices[train_size + val_size:]
+    # Stratified split — preserve class ratio across train/val/test
+    waste_indices   = [i for i, (_, label) in enumerate(train_dataset.samples) if label == 0]
+    recycle_indices = [i for i, (_, label) in enumerate(train_dataset.samples) if label == 1]
+
+    def split_indices(idx_list, train_r, val_r, gen):
+        idx_list = torch.tensor(idx_list)[torch.randperm(len(idx_list), generator=gen)].tolist()
+        t = int(len(idx_list) * train_r)
+        v = int(len(idx_list) * val_r)
+        return idx_list[:t], idx_list[t:t+v], idx_list[t+v:]
+
+    generator = torch.Generator().manual_seed(seed)
+    wt, wv, wte = split_indices(waste_indices,   train_ratio, val_ratio, generator)
+    rt, rv, rte = split_indices(recycle_indices, train_ratio, val_ratio, generator)
+
+    train_indices = wt + rt
+    val_indices   = wv + rv
+    test_indices  = wte + rte
 
     # Apply the index splits to the correct dataset
     from torch.utils.data import Subset

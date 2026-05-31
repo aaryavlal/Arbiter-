@@ -63,6 +63,10 @@ class WasteClassifier:
         class_name = CLASS_NAMES[predicted.item()]
         conf = confidence.item()
 
+        # If confidence is below threshold, default to waste (safer choice)
+        if conf < self.threshold:
+            class_name = "waste"
+
         return class_name, conf
 
 
