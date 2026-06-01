@@ -24,8 +24,12 @@ class WasteClassifier:
         self.image_size = cfg["model"]["image_size"]
         self.threshold = cfg["inference"]["confidence_threshold"]
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
         self.model = timm.create_model("mobilenetv3_small_100", pretrained=False, num_classes=2)
+        in_features = self.model.classifier.in_features
+        self.model.classifier = torch.nn.Sequential(
+            torch.nn.Dropout(p=0.3),
+            torch.nn.Linear(in_features, 2)
+)
         self.model.load_state_dict(
             torch.load(cfg["model"]["checkpoint_path"], map_location=self.device)
         )
@@ -40,7 +44,6 @@ class WasteClassifier:
         ])
 
     def predict(self, image) -> tuple[str, float]:
-        print("I NEED THE IMAGE FILE PATH")
         """
         Classify an image as recycle or waste.
 
