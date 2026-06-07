@@ -9,14 +9,15 @@ Usage:
 
 import argparse
 import sys
-import time
+import threading
 
 import cv2
-import yaml
 from PIL import Image
 
 sys.path.insert(0, "src")
 from infer import WasteClassifier
+
+
 
 
 def capture_frame(cap):
@@ -31,9 +32,6 @@ def capture_frame(cap):
 
 
 def run(config_path: str):
-    with open(config_path) as f:
-        cfg = yaml.safe_load(f)
-
     classifier = WasteClassifier(config_path)
 
     cap = cv2.VideoCapture(0)
@@ -41,23 +39,54 @@ def run(config_path: str):
         print("Error: could not open webcam.")
         sys.exit(1)
 
-    print("Arbiter ready. Using laptop webcam.")
-    print("Press Enter to capture and classify, or 'q' to quit.\n")
+    win = "Arbiter Preview"
+    cv2.namedWindow(win, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win, 1280, 720)
 
-    try:
-        while True:
-            cmd = input("> ").strip()
-            if cmd == "q":
+    print("Arbiter ready. Using laptop webcam.")
+    print("Press Enter in this terminal to capture and classify, or Ctrl+C to quit.\n")
+
+    capture_event = threading.Event()
+    quit_event = threading.Event()
+
+    def input_listener():
+        while not quit_event.is_set():
+            try:
+                input()
+                capture_event.set()
+            except EOFError:
                 break
 
-            frame = capture_frame(cap)
-            label, conf = classifier.predict(frame)
-            print(f"  → {label} ({conf:.2%})")
+    threading.Thread(target=input_listener, daemon=True).start()
+
+    frame = None
+    try:
+        while not quit_event.is_set():
+            ret, grabbed = cap.read()
+            if ret:
+                frame = grabbed
+                cv2.imshow(win, frame)
+
+            cv2.waitKey(30)
+
+            if capture_event.is_set() and frame is not None:
+                capture_event.clear()
+                image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                flash = frame.copy()
+                flash[:] = (255, 255, 255)
+                cv2.addWeighted(flash, 0.4, frame, 0.6, 0, frame)
+                cv2.imshow(win, frame)
+                cv2.waitKey(80)
+                label, conf = classifier.predict(image)
+                print(f"  DEBUG waste_prob check: {label} {conf:.4f}")
+                print(f"  → {label} ({conf:.2%})")
 
     except KeyboardInterrupt:
         print("\nShutting down.")
     finally:
+        quit_event.set()
         cap.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

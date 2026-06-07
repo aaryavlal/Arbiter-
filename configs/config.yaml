@@ -12,10 +12,10 @@ training:
   class_weights:
     # waste: 10.0 
     # recycle: 1.0 #missing a recycle piece is worse than missing a waste piece
-    waste: 12.0
+    waste: 4.0
     recycle: 1.0
 inference:
-  confidence_threshold: 0.65
+  confidence_threshold: 0.35
 
 data:  
   dir: data/raw  #Where the data actually lives 

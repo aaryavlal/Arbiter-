@@ -61,14 +61,16 @@ class WasteClassifier:
         with torch.no_grad():
             output = self.model(tensor)
             probs = torch.softmax(output, dim=1)
-            confidence, predicted = probs.max(1)
 
-        class_name = CLASS_NAMES[predicted.item()]
-        conf = confidence.item()
+        waste_idx = CLASS_NAMES.index("waste")
+        waste_prob = probs[0, waste_idx].item()
 
-        # If confidence is below threshold, default to waste (safer choice)
-        if conf < self.threshold:
+        if waste_prob >= self.threshold:
             class_name = "waste"
+            conf = waste_prob
+        else:
+            class_name = "recycle"
+            conf = probs[0, 1 - waste_idx].item()
 
         return class_name, conf
 
