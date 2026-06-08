@@ -38,7 +38,7 @@ def camera_thread():
     print("ColourGains:", metadata["ColourGains"])  # (red_gain, blue_gain)
     cam.set_controls({
         "AwbEnable": False,
-        "ColourGains": (2.8, 1.3)
+        "ColourGains": (2.8, 0.3)
     })
 
     while True:
