@@ -33,6 +33,7 @@ def camera_thread():
     cam.configure(config)
     # cam.set_controls({"AwbMode": 4})  # 4 = fluorescent, close to most white LEDs
     cam.start()
+    cam.set_controls({"AfMode": 2})  # 2 = continuous autofocus
     time.sleep(6)
     metadata = cam.capture_metadata()
     print("ColourGains:", metadata["ColourGains"])  # (red_gain, blue_gain)
