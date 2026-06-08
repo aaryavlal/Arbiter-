@@ -1,0 +1,8 @@
+torch
+torchvision
+timm
+opencv-python-headless
+picamera2
+numpy
+Pillow
+RPi.GPIO
