@@ -6,13 +6,14 @@ Usage:
     python pipeline/preview.py
 """
 
-from importlib.metadata import metadata
 import io
 import time
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+import cv2
 from picamera2 import Picamera2
+from libcamera import controls
 
 STREAM_SIZE = (1280, 720)
 PORT = 8000
@@ -24,32 +25,37 @@ latest_frame = None
 
 def camera_thread():
     global latest_frame
-    import cv2
 
     cam = Picamera2()
     config = cam.create_video_configuration(
         main={"size": STREAM_SIZE, "format": "RGB888"}
     )
     cam.configure(config)
-    # cam.set_controls({"AwbMode": 4})  # 4 = fluorescent, close to most white LEDs
+    
+    # Start camera before setting runtime controls
     cam.start()
-    cam.set_controls({"AfMode": 2})  # 2 = continuous autofocus
-    time.sleep(6)
-    metadata = cam.capture_metadata()
-    print("ColourGains:", metadata["ColourGains"])  # (red_gain, blue_gain)
+    
+    # 1. Enable AWB and set it to Fluorescent to handle the room lighting
+    # 2. Set continuous autofocus
     cam.set_controls({
-        "AwbEnable": False,
-        # "ColourGains": (2.8, 0.3)
-         "ColourGains": (2.2, 1.9)
+        "AwbEnable": True,
+        "AwbMode": controls.AwbModeEnum.Fluorescent,
+        "AfMode": controls.AfModeEnum.Continuous
     })
+
+    # Give the ISP 2 seconds to settle AWB/Exposure before streaming starts
+    time.sleep(2)
 
     while True:
         frame = cam.capture_array()
+        
+        # Convert RGB to BGR and encode to JPEG
         _, jpeg = cv2.imencode(
             ".jpg",
             cv2.cvtColor(frame, cv2.COLOR_RGB2BGR),
             [cv2.IMWRITE_JPEG_QUALITY, 70]
         )
+        
         with frame_lock:
             latest_frame = jpeg.tobytes()
 
