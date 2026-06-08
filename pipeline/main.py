@@ -1,7 +1,11 @@
 """
-Arbiter sorting pipeline — laptop webcam version for testing/training.
+Arbiter sorting pipeline — Pi Camera version.
 
-Flow: press Enter → capture frame from webcam → classify → print result.
+Flow: press Enter → capture frame from picamera2 → classify → print result.
+
+Set CROP below after using preview.py to determine bounds.
+CROP format: (x, y, width, height) in pixels at CAPTURE_SIZE resolution.
+Set CROP = None to use full frame.
 
 Usage:
     python pipeline/main.py --config configs/config.yaml
@@ -9,42 +13,42 @@ Usage:
 
 import argparse
 import sys
+import time
 import threading
 
-import cv2
 from PIL import Image
+from picamera2 import Picamera2
 
 sys.path.insert(0, "src")
 from infer import WasteClassifier
 
 
+# --- configure after using preview.py ---
+CAPTURE_SIZE = (1280, 720)
+CROP = None  # e.g. (160, 0, 720, 720) for a centered square crop
 
 
-def capture_frame(cap):
-    """Capture a frame from the laptop webcam."""
-    ret, frame = cap.read()
-    if not ret:
-        raise RuntimeError("Failed to capture frame from webcam")
-
-    # OpenCV uses BGR, PIL expects RGB
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return Image.fromarray(frame_rgb)
+def apply_crop(frame, crop):
+    if crop is None:
+        return frame
+    x, y, w, h = crop
+    return frame[y:y+h, x:x+w]
 
 
 def run(config_path: str):
     classifier = WasteClassifier(config_path)
 
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        print("Error: could not open webcam.")
-        sys.exit(1)
+    cam = Picamera2()
+    config = cam.create_still_configuration(
+        main={"size": CAPTURE_SIZE, "format": "RGB888"}
+    )
+    cam.configure(config)
+    cam.start()
+    time.sleep(2)
 
-    win = "Arbiter Preview"
-    cv2.namedWindow(win, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(win, 1280, 720)
-
-    print("Arbiter ready. Using laptop webcam.")
-    print("Press Enter in this terminal to capture and classify, or Ctrl+C to quit.\n")
+    crop_info = f"crop={CROP}" if CROP else "full frame (no crop)"
+    print(f"Arbiter ready. Using picamera2. Resolution: {CAPTURE_SIZE}, {crop_info}")
+    print("Press Enter to capture and classify, or Ctrl+C to quit.\n")
 
     capture_event = threading.Event()
     quit_event = threading.Event()
@@ -59,34 +63,22 @@ def run(config_path: str):
 
     threading.Thread(target=input_listener, daemon=True).start()
 
-    frame = None
     try:
         while not quit_event.is_set():
-            ret, grabbed = cap.read()
-            if ret:
-                frame = grabbed
-                cv2.imshow(win, frame)
-
-            cv2.waitKey(30)
-
-            if capture_event.is_set() and frame is not None:
+            if capture_event.is_set():
                 capture_event.clear()
-                image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                flash = frame.copy()
-                flash[:] = (255, 255, 255)
-                cv2.addWeighted(flash, 0.4, frame, 0.6, 0, frame)
-                cv2.imshow(win, frame)
-                cv2.waitKey(80)
+                frame = cam.capture_array()
+                frame = apply_crop(frame, CROP)
+                image = Image.fromarray(frame)
                 label, conf = classifier.predict(image)
-                print(f"  DEBUG waste_prob check: {label} {conf:.4f}")
                 print(f"  → {label} ({conf:.2%})")
+            time.sleep(0.05)
 
     except KeyboardInterrupt:
         print("\nShutting down.")
     finally:
         quit_event.set()
-        cap.release()
-        cv2.destroyAllWindows()
+        cam.stop()
 
 
 if __name__ == "__main__":
