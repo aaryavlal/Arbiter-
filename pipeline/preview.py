@@ -41,7 +41,7 @@ def camera_thread():
     cam.set_controls({
         "ExposureValue": 1.0,
         "AwbEnable": False,
-        "ColourGains": (1.2, 2.8),
+        "ColourGains": (0.8, 3.2),
         "AfMode": controls.AfModeEnum.Continuous
         
     })
