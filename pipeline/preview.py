@@ -39,9 +39,11 @@ def camera_thread():
     # 1. Enable AWB and set it to Fluorescent to handle the room lighting
     # 2. Set continuous autofocus
     cam.set_controls({
+        "ExposureValue": 1.0,
         "AwbEnable": False,
         "ColourGains": (1.2, 2.8),
         "AfMode": controls.AfModeEnum.Continuous
+        
     })
 
     # Give the ISP 2 seconds to settle AWB/Exposure before streaming starts
