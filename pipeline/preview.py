@@ -30,10 +30,10 @@ def camera_thread():
     config = cam.create_video_configuration(
         main={"size": STREAM_SIZE, "format": "RGB888"}
     )
-    cam.set_controls({"AwbMode": 4})  # 4 = fluorescent, close to most white LEDs
     cam.configure(config)
+    cam.set_controls({"AwbMode": 4})  # 4 = fluorescent, close to most white LEDs
     cam.start()
-    time.sleep(4)
+    time.sleep(6)
     metadata = cam.capture_metadata()
     print("ColourGains:", metadata["ColourGains"])  # (red_gain, blue_gain)
 
