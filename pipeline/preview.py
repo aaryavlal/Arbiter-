@@ -6,6 +6,7 @@ Usage:
     python pipeline/preview.py
 """
 
+from importlib import metadata
 import io
 import time
 import threading
@@ -45,6 +46,8 @@ def camera_thread():
 
     # Give the ISP 2 seconds to settle AWB/Exposure before streaming starts
     time.sleep(2)
+    metadata = cam.capture_metadata()
+    print("ColourGains:", metadata["ColourGains"])
 
     while True:
         frame = cam.capture_array()
