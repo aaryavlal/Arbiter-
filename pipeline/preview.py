@@ -40,7 +40,7 @@ def camera_thread():
     # 2. Set continuous autofocus
     cam.set_controls({
         "AwbEnable": False,
-        "ColourGains": (2.4, 1.6),
+        "ColourGains": (1.2, 2.8),
         "AfMode": controls.AfModeEnum.Continuous
     })
 
