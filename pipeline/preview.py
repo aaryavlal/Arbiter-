@@ -6,6 +6,7 @@ Usage:
     python pipeline/preview.py
 """
 
+from importlib.metadata import metadata
 import io
 import time
 import threading
@@ -29,9 +30,12 @@ def camera_thread():
     config = cam.create_video_configuration(
         main={"size": STREAM_SIZE, "format": "RGB888"}
     )
+    cam.set_controls({"AwbMode": 4})  # 4 = fluorescent, close to most white LEDs
     cam.configure(config)
     cam.start()
-    time.sleep(2)
+    time.sleep(4)
+    metadata = cam.capture_metadata()
+    print("ColourGains:", metadata["ColourGains"])  # (red_gain, blue_gain)
 
     while True:
         frame = cam.capture_array()
