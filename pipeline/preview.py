@@ -58,7 +58,7 @@ def camera_thread():
         # Convert RGB to BGR and encode to JPEG
         _, jpeg = cv2.imencode(
             ".jpg",
-            cv2.cvtColor(frame, cv2.COLOR_RGB2BGR),
+            frame,
             [cv2.IMWRITE_JPEG_QUALITY, 70]
         )
         
