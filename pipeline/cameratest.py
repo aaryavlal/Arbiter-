@@ -18,7 +18,6 @@ print(f"AWB colour gains (red, blue): {gains}")
 print(f"Colour temperature estimate: {metadata.get('ColourTemperature')} K")
 
 # Keep running so you can view the MJPEG stream or just leave it open
-print("Camera running. Ctrl+C to stop.")
 try:
     while True:
         time.sleep(1)
