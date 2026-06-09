@@ -39,9 +39,10 @@ def camera_thread():
     # 1. Enable AWB and set it to Fluorescent to handle the room lighting
     # 2. Set continuous autofocus
     cam.set_controls({
-        "ExposureValue": 1.0,
-        "AwbEnable": False,
-        "ColourGains": (0.8, 3.2),
+        # "ExposureValue": 1.0,
+        # "AwbEnable": True,
+        # "ColourGains": (0.8, 3.2),
+        "AwbMode": controls.AwbModeEnum.Tungsten,
         "AfMode": controls.AfModeEnum.Continuous
         
     })
