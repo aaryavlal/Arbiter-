@@ -1,4 +1,5 @@
 data/raw/
+data/test/
 data/processed/
 models/*.pt
 __pycache__/

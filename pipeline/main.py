@@ -10,7 +10,8 @@ Set CROP = None to use full frame.
 Usage:
     python pipeline/main.py --config configs/config.yaml
 """
-
+import os
+from datetime import datetime
 import argparse
 import sys
 import time
@@ -76,6 +77,9 @@ def run(config_path: str):
                 frame = apply_crop(frame, CROP)
                 image = Image.fromarray(frame)
                 label, conf = classifier.predict(image)
+                os.makedirs("data/test", exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                image.save(f"data/test/{timestamp}_{label}_{conf:.2f}.jpg", "JPEG", quality=95)
                 print(f"  → {label} ({conf:.2%})")
             time.sleep(0.05)
 
