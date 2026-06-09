@@ -42,7 +42,7 @@ def camera_thread():
         # "ExposureValue": 1.0,
         # "AwbEnable": True,
         # "ColourGains": (0.8, 3.2),
-        "AwbMode": controls.AwbModeEnum.Daylight,
+        "AwbMode": controls.AwbModeEnum.Florescent,
         "AfMode": controls.AfModeEnum.Continuous
         
     })
