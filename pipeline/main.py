@@ -42,7 +42,7 @@ def run(config_path: str):
 
     cam = Picamera2()
     config = cam.create_video_configuration(
-        main={"size": CAPTURE_SIZE, "format": "RGB888"}
+        main={"size": CAPTURE_SIZE, "format": "BGR888"}
     )
     cam.configure(config)
     cam.start()
