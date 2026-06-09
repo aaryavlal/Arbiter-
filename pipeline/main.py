@@ -15,6 +15,7 @@ import argparse
 import sys
 import time
 import threading
+from libcamera import controls
 
 from PIL import Image
 from picamera2 import Picamera2
@@ -39,16 +40,20 @@ def run(config_path: str):
     classifier = WasteClassifier(config_path)
 
     cam = Picamera2()
-    config = cam.create_still_configuration(
+    config = cam.create_video_configuration(
         main={"size": CAPTURE_SIZE, "format": "RGB888"}
     )
     cam.configure(config)
     cam.start()
+    cam.set_controls({
+        "AwbMode": controls.AwbModeEnum.Fluorescent,
+        "AfMode": controls.AfModeEnum.Continuous
+    })
     time.sleep(2)
 
     crop_info = f"crop={CROP}" if CROP else "full frame (no crop)"
     print(f"Arbiter ready. Using picamera2. Resolution: {CAPTURE_SIZE}, {crop_info}")
-    print("Press Enter to capture and classify, or Ctrl+C to quit.\n")
+    print("Press Enter to capture and classify. \n")
 
     capture_event = threading.Event()
     quit_event = threading.Event()
