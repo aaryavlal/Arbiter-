@@ -22,11 +22,12 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import cv2
 from picamera2 import Picamera2
+from libcamera import controls
 
 # --- config (kept consistent with preview.py) ---
 STREAM_SIZE = (1280, 720)
 PORT = 8000
-COLOUR_GAINS = (2.2, 1.9)   # fixed AWB gains, matches preview.py
+# COLOUR_GAINS = (2.2, 1.9)   # fixed AWB gains, matches preview.py
 JPEG_QUALITY_STREAM = 70    # for the browser preview only
 CROP = None                 # e.g. (160, 0, 720, 720); set after previewing
 
@@ -54,19 +55,20 @@ def camera_thread():
     )
     cam.configure(config)
     cam.start()
-    cam.set_controls({"AfMode": 2})  # 2 = continuous autofocus
-    time.sleep(6)
+    # cam.set_controls({"AfMode": 2})  # 2 = continuous autofocus
 
     metadata = cam.capture_metadata()
     print("ColourGains (auto, pre-lock):", metadata["ColourGains"])
     cam.set_controls({
-        "AwbEnable": False,
-        "ColourGains": COLOUR_GAINS,
+        "AwbMode": controls.AwbModeEnum.Fluorescent,
+        "AfMode": controls.AfModeEnum.Continuous ,
     })
+
+    time.sleep(2)
 
     while True:
         frame = cam.capture_array()
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  convert RGB to BGR for OpenCV
         frame = apply_crop(frame, CROP)
 
         _, jpeg = cv2.imencode(
