@@ -11,7 +11,7 @@ CROP format: (x, y, width, height) in pixels at STREAM_SIZE.
 Set CROP = None to use the full frame.
 
 Usage:
-    python pipeline/capturepaper.py
+    python pipeline/capturemetal.py
 """
 
 import time
@@ -31,7 +31,7 @@ PORT = 8000
 JPEG_QUALITY_STREAM = 70    # for the browser preview only
 CROP = None                 # e.g. (160, 0, 720, 720); set after previewing
 
-SAVE_DIR = Path("data/raw/paper")
+SAVE_DIR = Path("data/raw/metal")
 
 # --- shared frame state ---
 frame_lock = threading.Lock()
@@ -145,7 +145,7 @@ def capture_loop():
             continue
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        filename = SAVE_DIR / f"paper_{timestamp}.jpg"
+        filename = SAVE_DIR / f"metal_{timestamp}.jpg"
         cv2.imwrite(str(filename), frame)
 
         count += 1
