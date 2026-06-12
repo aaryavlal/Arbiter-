@@ -26,7 +26,7 @@ def evaluate(config_path: str):
         processed_dir, image_size=image_size, batch_size=batch_size
     )
 
-    model = timm.create_model(cfg["model"]["name"], pretrained=False, num_classes=2)
+    model = timm.create_model(cfg["model"]["name"], pretrained=False, num_classes=len(CLASS_NAMES))
     model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.to(device)
     model.eval()

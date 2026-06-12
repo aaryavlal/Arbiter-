@@ -1,5 +1,6 @@
 """
-Single-image inference. Returns 'recycle' or 'waste' with confidence score.
+Single-image inference. Returns 'recycle', 'waste', or 'empty' with a
+confidence score.
 
 Used standalone for testing and called by pipeline/main.py on the Pi.
 """
@@ -24,11 +25,12 @@ class WasteClassifier:
         self.image_size = cfg["model"]["image_size"]
         self.threshold = cfg["inference"]["confidence_threshold"]
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = timm.create_model("mobilenetv3_small_100", pretrained=False, num_classes=2)
+        num_classes = len(CLASS_NAMES)
+        self.model = timm.create_model("mobilenetv3_small_100", pretrained=False, num_classes=num_classes)
         in_features = self.model.classifier.in_features
         self.model.classifier = torch.nn.Sequential(
             torch.nn.Dropout(p=0.3),
-            torch.nn.Linear(in_features, 2)
+            torch.nn.Linear(in_features, num_classes)
 )
         self.model.load_state_dict(
             torch.load(cfg["model"]["checkpoint_path"], map_location=self.device)
@@ -45,7 +47,7 @@ class WasteClassifier:
 
     def predict(self, image) -> tuple[str, float]:
         """
-        Classify an image as recycle or waste.
+        Classify an image as recycle, waste, or empty.
 
         Args:
             image: PIL Image or path to image file.
@@ -60,19 +62,22 @@ class WasteClassifier:
 
         with torch.no_grad():
             output = self.model(tensor)
-            probs = torch.softmax(output, dim=1)
+            probs = torch.softmax(output, dim=1)[0]
 
+        empty_idx = CLASS_NAMES.index("empty")
         waste_idx = CLASS_NAMES.index("waste")
-        waste_prob = probs[0, waste_idx].item()
+        recycle_idx = CLASS_NAMES.index("recycle")
 
+        # Nothing under the camera — short-circuit before any sorting decision.
+        if probs.argmax().item() == empty_idx:
+            return "empty", probs[empty_idx].item()
+
+        # Conservative bias toward waste: only call it recycle when the model
+        # is confident it isn't waste.
+        waste_prob = probs[waste_idx].item()
         if waste_prob >= self.threshold:
-            class_name = "waste"
-            conf = waste_prob
-        else:
-            class_name = "recycle"
-            conf = probs[0, 1 - waste_idx].item()
-
-        return class_name, conf
+            return "waste", waste_prob
+        return "recycle", probs[recycle_idx].item()
 
 
 if __name__ == "__main__":

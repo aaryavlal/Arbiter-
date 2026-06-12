@@ -5,3 +5,5 @@ models/*.pt
 __pycache__/
 .env
 venv/
+audit-venv/
+audit_output/

@@ -9,11 +9,9 @@ training:
   learning_rate: 0.0003
   seed: 134
 
-  class_weights:
-    # waste: 10.0 
-    # recycle: 1.0 #missing a recycle piece is worse than missing a waste piece
-    waste: 3.5
-    recycle: 1.0
+  pi_sample_weight_paper: 15.0
+  pi_sample_weight_trash: 10.0
+  trashnet_sample_weight: 1.0
 inference:
   confidence_threshold: 0.35
 

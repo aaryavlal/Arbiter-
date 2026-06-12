@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import timm
 import yaml
-from dataset import get_dataloaders
+from dataset import get_dataloaders, CLASS_NAMES
 import random
 import numpy as np
 
@@ -20,12 +20,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def build_model(name: str, dropout: float = 0.3):
-    """Binary classification head on the configured backbone."""
-    model = timm.create_model(name, pretrained=True, num_classes=2)
+    """Classification head (one logit per class) on the configured backbone."""
+    num_classes = len(CLASS_NAMES)
+    model = timm.create_model(name, pretrained=True, num_classes=num_classes)
     in_features = model.classifier.in_features
     model.classifier = torch.nn.Sequential(
         torch.nn.Dropout(p=dropout),
-        torch.nn.Linear(in_features, 2)
+        torch.nn.Linear(in_features, num_classes)
     )
     return model
 
@@ -42,19 +43,18 @@ def train(config_path: str):
     batch_size = cfg["training"]["batch_size"]
     epochs = cfg["training"]["epochs"]
     lr = cfg["training"]["learning_rate"]
-    class_weights = cfg["training"]["class_weights"]
     checkpoint_path = Path(cfg["model"]["checkpoint_path"])
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, val_loader, test_loader = get_dataloaders(
-        data_dir=cfg["data"]["dir"], image_size=image_size, batch_size=batch_size, seed=seed
+        data_dir=cfg["data"]["dir"], image_size=image_size, batch_size=batch_size, seed=seed,
+        cfg=cfg
     )
 
     model = build_model(cfg["model"]["name"]).to(device)
 
-    weights = torch.tensor([class_weights["waste"], class_weights["recycle"]]).to(device)
-    criterion = nn.CrossEntropyLoss(weight=weights)
+    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='max', factor=0.5, patience=3
@@ -114,7 +114,7 @@ def train(config_path: str):
             all_labels.extend(labels.cpu().tolist())
 
     print("\nPer-class breakdown (test set):")
-    print(classification_report(all_labels, all_preds, target_names=["waste", "recycle"]))
+    print(classification_report(all_labels, all_preds, target_names=CLASS_NAMES))
 
 
 def evaluate_epoch(model, loader, device):
