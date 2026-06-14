@@ -77,6 +77,7 @@ class TrashDataset(Dataset):
             return [1.0] * len(self.samples)
 
         pi_weights_by_prefix = {
+            "cardboard": cfg["training"]["pi_sample_weight_cardboard"],
             "paper": cfg["training"]["pi_sample_weight_paper"],
             "trash": cfg["training"]["pi_sample_weight_trash"],
         }
@@ -99,10 +100,12 @@ class TrashDataset(Dataset):
             return
         pi_paper_w = cfg["training"]["pi_sample_weight_paper"]
         pi_trash_w = cfg["training"]["pi_sample_weight_trash"]
+        pi_cardboard_w = cfg["training"]["pi_sample_weight_cardboard"]
         tn_w = cfg["training"]["trashnet_sample_weight"]
 
         n_pi_paper = 0
         n_pi_trash = 0
+        n_pi_cardboard = 0
         n_empty = 0
         n_tn = 0
         for img_path, label in self.samples:
@@ -113,12 +116,15 @@ class TrashDataset(Dataset):
                 n_pi_paper += 1
             elif fname.startswith("trash_"):
                 n_pi_trash += 1
+            elif fname.startswith("cardboard_"):
+                n_pi_cardboard += 1
             else:
                 n_tn += 1
 
         print("Dataset composition:")
         print(f"  Pi paper:   {n_pi_paper:>5} × {pi_paper_w:>4.1f} = {n_pi_paper * pi_paper_w:.0f}")
         print(f"  Pi trash:   {n_pi_trash:>5} × {pi_trash_w:>4.1f} = {n_pi_trash * pi_trash_w:.0f}")
+        print(f"  Pi cardboard: {n_pi_cardboard:>5} × {pi_cardboard_w:>4.1f} = {n_pi_cardboard * pi_cardboard_w:.0f}")
         print(f"  Empty:      {n_empty:>5} × {tn_w:>4.1f} = {n_empty * tn_w:.0f}")
         print(f"  TrashNet:   {n_tn:>5} × {tn_w:>4.1f} = {n_tn * tn_w:.0f}")
 

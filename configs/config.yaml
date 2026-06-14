@@ -9,6 +9,8 @@ training:
   learning_rate: 0.0003
   seed: 134
 
+
+  pi_sample_weight_cardboard: 20.0
   pi_sample_weight_paper: 15.0
   pi_sample_weight_trash: 10.0
   trashnet_sample_weight: 1.0
