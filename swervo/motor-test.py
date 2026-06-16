@@ -1,15 +1,12 @@
-import pigpio
-import time
+from gpiozero import Servo
+from time import sleep
 
-pi = pigpio.pi()                          # connect to the pigpiod daemon
-SERVO = 18                                # GPIO18 = physical pin 12
+servo = Servo(18)  # GPIO18 = physical pin 12
 
-pi.set_servo_pulsewidth(SERVO, 1500)      # center (~90°)
-time.sleep(1)
-pi.set_servo_pulsewidth(SERVO, 1000)      # one extreme (~0°)
-time.sleep(1)
-pi.set_servo_pulsewidth(SERVO, 2000)      # other extreme (~180°)
-time.sleep(1)
-pi.set_servo_pulsewidth(SERVO, 0)         # stop sending pulses (servo goes limp)
-
-pi.stop()                                 # disconnect
+servo.mid()        # center
+sleep(1)
+servo.min()        # one extreme
+sleep(1)
+servo.max()        # other extreme
+sleep(1)
+servo.detach()     # stop sending pulses (servo goes limp)
