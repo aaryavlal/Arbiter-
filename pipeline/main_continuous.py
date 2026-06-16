@@ -35,9 +35,13 @@ from infer import WasteClassifier
 
 # --- servo tuning (gpiozero Servo.value, range -1.0 .. 1.0) ---
 SERVO_PIN = 18           # GPIO18 = physical pin 12
-SERVO_MID = 0.0          # start / rest position ("mid")
-SERVO_RECYCLE = 1.0      # full travel one way for recycle ("max")
-SERVO_WASTE = -1.0       # full travel the other way for trash ("min")
+
+
+SERVO_MID = 0.0
+SERVO_TRAVEL = 0.8       # how far to swing from mid in either direction
+
+SERVO_RECYCLE = max(-1.0, min(1.0, SERVO_MID + SERVO_TRAVEL))  # one way for recycle
+SERVO_WASTE = max(-1.0, min(1.0, SERVO_MID - SERVO_TRAVEL))    # other way for trash
 SERVO_MOVE_PAUSE = 1.0   # seconds to hold a position before moving again
 
 # --- loop timing ---
