@@ -1,13 +1,15 @@
-# gpiozero (easiest for servos)
-from gpiozero import Servo
-servo = Servo(18)   # the 18 means GPIO18
-
-# RPi.GPIO
-import RPi.GPIO as GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(18, GPIO.OUT)
-
-# pigpio (least jitter, recommended for servos)
 import pigpio
-pi = pigpio.pi()
-pi.set_servo_pulsewidth(18, 1500)   # 1500µs = center
+import time
+
+pi = pigpio.pi()                          # connect to the pigpiod daemon
+SERVO = 18                                # GPIO18 = physical pin 12
+
+pi.set_servo_pulsewidth(SERVO, 1500)      # center (~90°)
+time.sleep(1)
+pi.set_servo_pulsewidth(SERVO, 1000)      # one extreme (~0°)
+time.sleep(1)
+pi.set_servo_pulsewidth(SERVO, 2000)      # other extreme (~180°)
+time.sleep(1)
+pi.set_servo_pulsewidth(SERVO, 0)         # stop sending pulses (servo goes limp)
+
+pi.stop()                                 # disconnect
