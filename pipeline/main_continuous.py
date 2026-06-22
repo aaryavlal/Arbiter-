@@ -37,16 +37,21 @@ from infer import WasteClassifier
 SERVO_PIN = 18           # GPIO18 = physical pin 12
 
 
-SERVO_MID = -0.625
-SERVO_TRAVEL = 0.8       # how far to swing from mid in either direction
+SERVO_MID = 0.6
+SERVO_TRAVEL = 0.4       # how far to swing from mid in either direction
 
 SERVO_RECYCLE = max(-1.0, min(1.0, SERVO_MID + SERVO_TRAVEL))  # one way for recycle
 SERVO_WASTE = max(-1.0, min(1.0, SERVO_MID - SERVO_TRAVEL))    # other way for trash
-SERVO_MOVE_PAUSE = 1.0   # seconds to hold a position before moving again
+SERVO_MOVE_PAUSE = 2.0   # seconds to hold a position before moving again
+
+# Glide toward a target instead of snapping, so the motor travels slower.
+# Rate is in Servo.value units per second; lower = slower approach to the target.
+SERVO_SPEED = 0.75       # ~0.75 value-units/sec toward the target
+SERVO_STEP_INTERVAL = 0.02  # seconds between incremental steps while gliding
 
 # --- loop timing ---
 POLL_INTERVAL = 2.0      # seconds between presence checks
-SORT_COOLDOWN = 5.0      # seconds to pause after a sort before resuming polling
+SORT_COOLDOWN = 4.0      # seconds to pause after a sort before resuming polling
 
 # --- camera (matches pipeline/main.py) ---
 CAPTURE_SIZE = (1280, 720)
@@ -80,11 +85,21 @@ def focus_and_capture(cam):
     return capture_image(cam)
 
 
+def glide_servo(servo, start, target):
+    """Move the servo from start to target gradually at SERVO_SPEED (value-units/sec)."""
+    distance = target - start
+    steps = max(1, int(abs(distance) / SERVO_SPEED / SERVO_STEP_INTERVAL))
+    for i in range(1, steps + 1):
+        servo.value = start + distance * (i / steps)
+        time.sleep(SERVO_STEP_INTERVAL)
+    servo.value = target
+
+
 def move_servo(servo, target):
     """Drive the servo to an extreme, hold, then return to mid."""
-    servo.value = target
+    glide_servo(servo, SERVO_MID, target)
     time.sleep(SERVO_MOVE_PAUSE)
-    servo.value = SERVO_MID
+    glide_servo(servo, target, SERVO_MID)
     time.sleep(SERVO_MOVE_PAUSE)
     # Stop sending pulses so the servo doesn't jitter while idle.
     servo.detach()
