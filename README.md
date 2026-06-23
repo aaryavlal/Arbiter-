@@ -4,12 +4,8 @@ Automated waste sorting for Raspberry Pi. A camera classifies items as recyclabl
 
 ---
 
-## Demo Video
-
-[Demo video](https://drive.google.com/file/d/1hrgxE8dlGoFcHhTaqKrMwUdue5Joh928/view?usp=sharing)
-
+## [Demo Video](https://drive.google.com/file/d/1hrgxE8dlGoFcHhTaqKrMwUdue5Joh928/view?usp=sharing)
 ## Physical Config:
-
 <img width="2160" height="2880" alt="image" src="https://github.com/user-attachments/assets/34bbe5cc-3414-43e6-a4ea-261281ac27b2" />
 
 
