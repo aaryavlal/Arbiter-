@@ -4,14 +4,14 @@ Automated waste sorting for Raspberry Pi. A camera classifies items as recyclabl
 
 ---
 
-## Demo
+## Demo Video
 
-<!-- TODO: replace with actual video thumbnail + link -->
-![Demo video](https://drive.google.com/file/d/1hrgxE8dlGoFcHhTaqKrMwUdue5Joh928/view?usp=sharing)
+[Demo video](https://drive.google.com/file/d/1hrgxE8dlGoFcHhTaqKrMwUdue5Joh928/view?usp=sharing)
 
-<!-- TODO: insert still photo of the physical rig -->
+## Physical Config:
 
-![Physical Rig](image.png)
+<img width="2160" height="2880" alt="image" src="https://github.com/user-attachments/assets/34bbe5cc-3414-43e6-a4ea-261281ac27b2" />
+
 
 ---
 
@@ -29,17 +29,17 @@ This is a hardware project first. It cannot be cloned and run by a stranger — 
 ┌─────────────────────────────────────────────────────────┐
 │  Raspberry Pi 4                                         │
 │                                                         │
-│  Picamera3 (1280×720, BGR888, AWB=Constant)          │
+│  Picamera3 (1280×720, BGR888, AWB=Constant)             │
 │      │                                                  │
 │      ▼  every 2 s                                       │
-│  WasteClassifier.predict()  ──► "empty" → keep polling │
+│  WasteClassifier.predict()  ──► "empty" → keep polling  │
 │      │                                                  │
 │      │ non-empty detected                               │
 │      ▼                                                  │
 │  cam.autofocus_cycle()  (Pi Camera Module 3 AF)         │
 │      │                                                  │
 │      ▼                                                  │
-│  WasteClassifier.predict()  ──► "recycle" or "waste"   │
+│  WasteClassifier.predict()  ──► "recycle" or "waste"    │
 │      │                                                  │
 │      ▼                                                  │
 │  gpiozero Servo (GPIO 18, DS3218MG)                     │
@@ -250,6 +250,3 @@ python pipeline/main_train.py --config configs/config.yaml
 ## Acknowledgments
 
 - [TrashNet](https://github.com/garythung/trashnet) — Gary Thung and Mindy Yang
-- [timm](https://github.com/huggingface/pytorch-image-models) — Ross Wightman
-- [picamera2](https://github.com/raspberrypi/picamera2) — Raspberry Pi Foundation
-- [gpiozero](https://github.com/gpiozero/gpiozero) — Ben Nuttall et al.
