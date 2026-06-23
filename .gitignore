@@ -7,3 +7,4 @@ __pycache__/
 venv/
 audit-venv/
 audit_output/
+train_run.log
