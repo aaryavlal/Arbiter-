@@ -1,6 +1,6 @@
 # Arbiter
 
-Automated waste sorting for Raspberry Pi. A camera classifies items as recyclable, waste, or empty; a servo-driven lever physically routes them.
+Automated waste sorting for Raspberry Pi. A camera classifies items as recyclable, waste, or empty using self captured data; a servo-driven lever physically routes them.
 
 ---
 
